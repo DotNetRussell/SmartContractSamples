@@ -6,12 +6,20 @@ import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 
 contract FundMe{
     
+    address public owner;
     mapping(address => uint256) public addressToAmountFunded;
+    
+    address[] public funders;
+    
+    constructor() public{
+        owner = msg.sender;
+    }
     
     function fund() public payable{
         uint256 minUsd = 50 * 10 * 18;
         require(getConversionRate(msg.value) >= minUsd, "Send more monez");
         addressToAmountFunded[msg.sender] += msg.value;
+        funders.push(msg.sender);
     }
     
     function getVersion() public view returns (uint256){
@@ -30,7 +38,17 @@ contract FundMe{
         return (ethAmount * ethPrice) / 1000000000000000000;
     }
     
-    function withdraw() payable public {
+    modifier onlyOwner {
+        require(msg.sender == owner);
+        _;
+    }
+    
+    function withdraw() payable onlyOwner public {
         payable(msg.sender).transfer(address(this).balance);
+        for(uint256 i = 0; i < funders.length; i++){
+            address funder = funders[i];
+            addressToAmountFunded[funder] = 0;
+        }
+        funders = new address[](0);
     }
 }

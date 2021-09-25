@@ -31,6 +31,6 @@ contract FundMe{
     }
     
     function withdraw() payable public {
-        msg.sender.transfer(address(this).balance);
+        payable(msg.sender).transfer(address(this).balance);
     }
 }
